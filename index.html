@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bagswap — Swap whole bags at one price</title>
+<meta name="description" content="Fixed-price OTC for Solana memecoins. Sell a big bag without nuking the chart. No slippage, nobody sends first.">
+<meta property="og:title" content="Bagswap — Swap whole bags at one price">
+<meta property="og:description" content="Fixed-price OTC for Solana memecoins. No slippage. Nobody sends first.">
+<meta property="og:image" content="assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon-64.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F4EBD9;--ink:#17140F;--hot:#FF4B1F;--grey:#CFC5B0;--white:#FBF6EA}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font:17px/1.5 'Bricolage Grotesque',system-ui,sans-serif;
+ background-image:radial-gradient(rgba(23,20,15,.07) 1px,transparent 1px);background-size:5px 5px;overflow-x:hidden}
+a{color:inherit}
+.mono{font-family:'Space Mono',monospace}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+h1,h2,h3{font-weight:800;line-height:1;letter-spacing:-.02em}
+h1{font-size:clamp(44px,8vw,92px)}
+h2{font-size:clamp(30px,4.5vw,50px);margin-bottom:12px}
+h3{font-size:22px;line-height:1.15}
+.btn{display:inline-block;background:var(--hot);color:var(--ink);font:700 16px 'Space Mono',monospace;text-decoration:none;
+ padding:14px 22px;border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);transition:transform .1s,box-shadow .1s;cursor:pointer}
+.btn:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink)}
+.btn.ghost{background:var(--paper)}
+.tear{border:0;border-top:3px dotted var(--ink);margin:0;opacity:.4}
+section{padding:72px 0}
+/* nav */
+nav{border-bottom:3px solid var(--ink);background:var(--paper);position:sticky;top:0;z-index:20}
+nav .wrap{display:flex;align-items:center;gap:20px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:24px;text-decoration:none;letter-spacing:-.03em}
+.logo svg{width:34px;height:34px}
+nav .links{margin-left:auto;display:flex;gap:22px;font:700 14px 'Space Mono',monospace}
+nav .links a{text-decoration:none}nav .links a:hover{color:var(--hot)}
+nav .btn{padding:8px 14px;font-size:13px;box-shadow:3px 3px 0 var(--ink)}
+/* hero */
+.hero{padding:56px 0 72px}
+.eyebrow{font:700 14px 'Space Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:18px}
+.eyebrow b{background:var(--ink);color:var(--paper);padding:3px 8px}
+.hero h1 span{color:var(--hot)}
+.hero .sub{font-size:clamp(20px,2.6vw,28px);font-weight:500;margin:20px 0 34px;max-width:640px}
+.hero .cta{display:flex;gap:16px;flex-wrap:wrap}
+/* calculator */
+.calc{margin-top:56px}
+.calc-head{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:end;margin-bottom:30px;font-family:'Space Mono',monospace}
+.calc-head label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.calc-head input{font:700 22px 'Space Mono',monospace;width:150px;padding:8px 10px;border:3px solid var(--ink);background:var(--white);color:var(--ink)}
+.calc-head input:focus{outline:3px solid var(--hot);outline-offset:2px}
+.calc-head .tag{margin-left:auto;font-size:12px;border:2px dashed var(--ink);padding:4px 8px}
+.receipts{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+.receipt{position:relative;background:var(--white);padding:26px 24px 44px;font:400 14px/1.7 'Space Mono',monospace;
+ filter:drop-shadow(7px 7px 0 var(--ink));
+ --z:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/14px 100%;
+ -webkit-mask:var(--z);mask:var(--z);
+ animation:print .9s cubic-bezier(.2,.8,.2,1) both}
+.receipt.b{animation-delay:.25s}
+@keyframes print{from{transform:translateY(-60px);opacity:0;clip-path:inset(0 0 100% 0)}to{transform:none;opacity:1;clip-path:inset(0 0 0 0)}}
+.receipt h3{font-size:26px;border-bottom:3px dashed var(--ink);padding-bottom:10px;margin-bottom:12px}
+.receipt h3 small{display:block;font:400 12px 'Space Mono',monospace;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin-top:6px}
+.row{display:flex;justify-content:space-between;gap:10px}
+.row.sum{border-top:3px dashed var(--ink);margin-top:10px;padding-top:10px;font-weight:700;font-size:16px}
+.row.hl{background:var(--hot);margin:0 -6px;padding:0 6px;font-weight:700}
+.note{font-size:12px;opacity:.7;margin-top:12px;line-height:1.5}
+.stamp{position:absolute;right:12px;top:14px;font:800 40px 'Bricolage Grotesque';color:var(--hot);border:5px solid var(--hot);
+ padding:0 14px;transform:rotate(-9deg);letter-spacing:-.02em;mix-blend-mode:multiply;opacity:.92;
+ animation:slam .35s .9s cubic-bezier(.3,1.6,.5,1) both}
+.receipt.b .stamp{animation-delay:1.15s;transform:rotate(7deg)}
+@keyframes slam{from{transform:scale(3) rotate(-20deg);opacity:0}}
+.receipt.b .stamp{animation-name:slamb}
+@keyframes slamb{from{transform:scale(3) rotate(20deg);opacity:0}}
+.tick{display:inline-block;transition:transform .15s}.tick.bump{transform:scale(1.15)}
+/* cards (price tags) */
+.tags{display:grid;grid-template-columns:repeat(3,1fr);gap:34px 28px;margin-top:40px}
+.tagcard{position:relative;background:var(--white);border:3px solid var(--ink);padding:44px 22px 24px;box-shadow:6px 6px 0 var(--ink)}
+.tagcard::before{content:'';position:absolute;top:12px;left:50%;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--paper);border:3px solid var(--ink)}
+.tagcard:nth-child(odd){transform:rotate(-1deg)}.tagcard:nth-child(even){transform:rotate(1deg)}
+.tagcard .n{position:absolute;top:-14px;right:14px;background:var(--hot);border:3px solid var(--ink);font:700 14px 'Space Mono',monospace;padding:2px 8px;transform:rotate(4deg)}
+.tagcard p{margin-top:10px;font-size:16px}
+.tagcard .ex{margin-top:12px;font:400 12.5px/1.5 'Space Mono',monospace;border-top:2px dashed var(--ink);padding-top:10px;opacity:.85}
+/* how */
+.how{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:36px}
+.tabs{display:flex;gap:0;margin-top:26px}
+.tabs button{font:700 15px 'Space Mono',monospace;padding:10px 22px;border:3px solid var(--ink);background:var(--paper);cursor:pointer;color:var(--ink)}
+.tabs button+button{border-left:0}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--paper)}
+.tickets{display:grid;gap:18px}
+.ticket{display:flex;gap:18px;background:var(--white);border:3px solid var(--ink);padding:18px 20px;position:relative;box-shadow:5px 5px 0 var(--ink)}
+.ticket .num{font:800 54px/1 'Bricolage Grotesque';color:var(--hot);-webkit-text-stroke:2px var(--ink);min-width:44px}
+.ticket p{font-size:15.5px;margin-top:4px}
+.ticket::after{content:'';position:absolute;left:78px;top:6px;bottom:6px;border-left:3px dotted var(--ink);opacity:.35}
+.ticket>div:last-child{padding-left:18px}
+.panel[hidden]{display:none}
+/* fees */
+.till{max-width:520px;margin:30px auto 0;background:var(--white);padding:28px 26px 46px;font:400 15px/1.9 'Space Mono',monospace;filter:drop-shadow(7px 7px 0 var(--ink));
+ -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/14px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/14px 100%}
+.till .row.hl{font-size:17px}
+.till h3{text-align:center;border-bottom:3px dashed var(--ink);padding-bottom:10px;margin-bottom:10px}
+/* escrow diagram */
+.flow{display:grid;grid-template-columns:1fr auto 1.2fr auto 1fr;gap:12px;align-items:center;margin:34px 0}
+.node{background:var(--white);border:3px solid var(--ink);padding:16px;text-align:center;box-shadow:5px 5px 0 var(--ink)}
+.node.hot{background:var(--hot)}
+.node b{display:block;font-size:20px}
+.node span{font:400 12.5px 'Space Mono',monospace}
+.arrow{font:700 12px 'Space Mono',monospace;text-align:center}
+.arrow i{display:block;font-style:normal;font-size:28px;line-height:1}
+.cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px}
+.cols div{border-top:4px solid var(--ink);padding-top:12px}
+.cols h4{font:700 15px 'Space Mono',monospace;text-transform:uppercase;margin-bottom:6px}
+.cols p{font-size:15.5px}
+.stampx{display:inline-block;font:700 13px 'Space Mono',monospace;color:var(--hot);border:3px solid var(--hot);padding:2px 10px;transform:rotate(-3deg);text-transform:uppercase;letter-spacing:.05em}
+/* offers */
+.board{max-width:420px;margin:30px auto 0;background:var(--white);padding:28px 26px 46px;text-align:center;font-family:'Space Mono',monospace;filter:drop-shadow(7px 7px 0 var(--ink));
+ -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/14px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/14px 100%}
+.board h3{font-size:30px;margin-bottom:8px}
+.board p{font-size:14px;margin-bottom:18px}
+/* faq */
+details{border-bottom:3px dotted rgba(23,20,15,.45);padding:18px 0}
+summary{font-weight:700;font-size:20px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::after{content:'+';font:700 26px/1 'Space Mono',monospace;color:var(--hot)}
+details[open] summary::after{content:'–'}
+details p{margin-top:10px;max-width:760px;font-size:16.5px}
+/* cta + footer */
+.big{background:var(--ink);color:var(--paper);text-align:center;padding:84px 0}
+.big h2{font-size:clamp(36px,6vw,72px)}
+.big p{font-size:20px;margin:6px 0 30px;opacity:.85}
+.big .btn{box-shadow:5px 5px 0 var(--hot)}
+footer{padding:36px 0 100px;font:400 13px/1.7 'Space Mono',monospace}
+footer .wrap{display:flex;flex-wrap:wrap;gap:20px 50px;justify-content:space-between}
+footer p.legal{width:100%;opacity:.7}
+.ca{width:100%;border:2px dashed var(--ink);padding:8px 12px;word-break:break-all}
+.sticky{display:none}
+@media(max-width:820px){
+ nav .links{display:none}nav .btn{margin-left:auto}
+ .receipts,.how,.cols{grid-template-columns:1fr}
+ .tags{grid-template-columns:1fr}
+ .flow{grid-template-columns:1fr}.arrow i{transform:rotate(90deg)}
+ section{padding:52px 0}
+ .stamp{font-size:34px} .receipt h3 small{padding-right:80px}
+ .sticky{display:block;position:fixed;left:16px;right:16px;bottom:14px;z-index:30;text-align:center}
+ .calc-head .tag{margin-left:0}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+ <a class="logo" href="#top" aria-label="Bagswap home">
+  <img src="assets/logo.svg" alt="" width="34" height="34" onerror="this.outerHTML='<svg viewBox=&quot;0 0 40 40&quot; aria-hidden=&quot;true&quot;><path d=&quot;M8 14h24l3 22H5z&quot; fill=&quot;#F4EBD9&quot; stroke=&quot;#17140F&quot; stroke-width=&quot;3&quot; stroke-linejoin=&quot;round&quot;/><path d=&quot;M14 14c0-8 12-8 12 0&quot; fill=&quot;none&quot; stroke=&quot;#17140F&quot; stroke-width=&quot;3&quot;/><rect x=&quot;16&quot; y=&quot;22&quot; width=&quot;13&quot; height=&quot;9&quot; fill=&quot;#FF4B1F&quot; stroke=&quot;#17140F&quot; stroke-width=&quot;2.5&quot; transform=&quot;rotate(-8 22 26)&quot;/></svg>'">
+  Bagswap</a>
+ <div class="links"><a href="#why">Why Bagswap</a><a href="#how">How it works</a><a href="#fees">Fees</a><a href="#escrow">Escrow</a><a href="#offers">Offers</a><a href="#faq">FAQ</a></div>
+ <a class="btn" data-x href="#">List a bag</a>
+</div></nav>
+
+<header class="hero" id="top"><div class="wrap">
+ <p class="eyebrow"><b>Fixed-price OTC</b> for Solana memecoins</p>
+ <h1>Swap whole bags<br>at <span>one price.</span></h1>
+ <p class="sub">No slippage. Nobody sends first. Buy or sell a big bag at a price you both wrote down, and swap in one transaction.</p>
+ <div class="cta"><a class="btn" data-x href="#">List a bag</a><a class="btn ghost" href="#offers">Browse offers</a></div>
+
+ <div class="calc" id="calc">
+  <div class="calc-head">
+   <div><label for="amt">Buying (SOL)</label><input id="amt" type="number" inputmode="decimal" min="0.1" step="0.5" value="10"></div>
+   <div><label for="pool">Pool depth (SOL)</label><input id="pool" type="number" inputmode="decimal" min="1" step="10" value="100"></div>
+   <span class="tag">EXAMPLE · illustrative pool</span>
+  </div>
+  <div class="receipts">
+   <article class="receipt a" aria-live="polite">
+    <h3>Thin pool<small>Swap · <span id="aLabel"></span></small></h3>
+    <div class="row"><span>You pay</span><span><span id="aPay" class="tick"></span> SOL</span></div>
+    <div class="row"><span>Pool fee (1.25%)</span><span id="aFee"></span></div>
+    <div class="row"><span>Price impact</span><span id="aImp"></span></div>
+    <div class="row sum"><span>You get</span><span id="aGet"></span></div>
+    <div class="row"><span>Worth at spot</span><span><span id="aWorth" class="tick"></span> SOL</span></div>
+    <div class="row hl"><span>Lost</span><span id="aLost"></span></div>
+    <p class="note" id="aNote"></p>
+    <div class="stamp" id="aStamp">-10%</div>
+   </article>
+   <article class="receipt b" aria-live="polite">
+    <h3>Bagswap<small>Fixed-price offer · same spot price</small></h3>
+    <div class="row"><span>Price</span><span id="bPrice"></span></div>
+    <div class="row"><span>Subtotal</span><span><span id="bSub" class="tick"></span> SOL</span></div>
+    <div class="row"><span>Bagswap fee (1%)</span><span id="bFee"></span></div>
+    <div class="row"><span>Price impact</span><span>0.00%</span></div>
+    <div class="row sum"><span>You pay</span><span id="bPay"></span></div>
+    <div class="row"><span>You get</span><span id="bGet"></span></div>
+    <div class="row hl"><span>Lost</span><span id="bLost">1.00%</span></div>
+    <p class="note">Offer is at the same spot price; real sellers set their own. Network fees left out.</p>
+    <div class="stamp">-1%</div>
+   </article>
+  </div>
+  <p class="mono" style="margin-top:34px;font-size:13px">Launch pools can charge up to 99% at the start. Bagswap: 1% per side, nothing else apart from the network fee.</p>
+ </div>
+</div></header>
+<hr class="tear">
+
+<section id="why"><div class="wrap">
+ <h2>Why traders use Bagswap</h2>
+ <p style="max-width:640px">A swap is the quickest way to trade a small amount. These are the trades a pool handles badly.</p>
+ <div class="tags">
+  <div class="tagcard"><span class="n">#1</span><h3>Sell a big bag without crashing the chart</h3><p>A swap makes every token you sell cheaper than the last. An offer has one price, so a buyer taking all of it pays the same per token as one taking a little.</p><p class="ex">Example: selling 10% of a thin pool loses about 10% on a swap. A fixed-price offer that fills costs you 1%.</p></div>
+  <div class="tagcard"><span class="n">#2</span><h3>Skip the pool and launch fees</h3><p>Launch pools can charge steep fees right after launch. A Bagswap trade never touches a pool: 1% from the buyer, 1% from the seller, plus the network fee.</p><p class="ex">Example: pump.fun charges 1.25% per swap before a coin graduates.</p></div>
+  <div class="tagcard"><span class="n">#3</span><h3>Paired with another token? Get paid in SOL</h3><p>If your token trades against another token, selling for SOL takes two swaps and two sets of fees. Offers are priced in SOL, so the buyer pays you directly.</p><p class="ex">Example: two swaps lose about 10.4%; a fixed-price offer in SOL that fills costs you 1%.</p></div>
+  <div class="tagcard"><span class="n">#4</span><h3>Deal with a buyer you know, and nobody sends first</h3><p>"WTS 50k, DM me" usually ends with "you send first". Make a private offer that only their wallet can buy. Tokens and payment swap in one transaction.</p></div>
+  <div class="tagcard"><span class="n">#5</span><h3>Your offer works while you sleep</h3><p>Write the price once. Buyers can fill it any time and you're paid in the same transaction. No end date, or any end from 5 minutes to a year. Cancel anytime.</p></div>
+  <div class="tagcard"><span class="n">#6</span><h3>Buy size without pushing the price up</h3><p>Post a funded buy request. Your SOL waits in escrow, so any holder can sell to you instantly at your price. Cancel anytime and get back what wasn't used.</p></div>
+ </div>
+ <p class="mono" style="margin-top:36px;font-size:13px">An offer only fills if someone wants it at your price. For small, instant trades a DEX is still quicker.</p>
+</div></section>
+<hr class="tear">
+
+<section id="how"><div class="wrap">
+ <h2>How it works</h2>
+ <div class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="buy">Buying</button>
+  <button role="tab" aria-selected="false" data-tab="sell">Selling</button>
+ </div>
+ <div class="how">
+  <div>
+   <article class="receipt panel" id="p-buy" style="animation:none;padding-bottom:44px">
+    <h3>Buying<small>Example · 10,000,000 BONK at an example price</small></h3>
+    <div class="row"><span>Subtotal</span><span>30.98 USDC</span></div>
+    <div class="row"><span>Bagswap fee (1%)</span><span>0.31 USDC</span></div>
+    <div class="row"><span>Network fee</span><span>≈ 0.000055 SOL</span></div>
+    <div class="row sum"><span>You pay</span><span>31.29 USDC</span></div>
+    <div class="row"><span>You receive</span><span>10,000,000 BONK</span></div>
+   </article>
+   <article class="receipt panel" id="p-sell" hidden style="animation:none;padding-bottom:44px">
+    <h3>Selling<small>Example · 10,000,000 BONK at an example price</small></h3>
+    <div class="row"><span>Sale total</span><span>30.98 USDC</span></div>
+    <div class="row"><span>Seller fee (1%)</span><span>−0.31 USDC</span></div>
+    <div class="row sum"><span>If fully sold you receive</span><span>30.67 USDC</span></div>
+    <div class="row"><span>Listing deposit</span><span>refundable</span></div>
+   </article>
+  </div>
+  <div class="tickets">
+   <div class="panel tickets" id="t-buy">
+    <div class="ticket"><div class="num">1</div><div><h3>Find the right token.</h3><p>Search by name or paste the mint address (CA). Match the full CA, not the ticker.</p></div></div>
+    <div class="ticket"><div class="num">2</div><div><h3>Choose how much.</h3><p>Any amount from the seller's minimum up, at their fixed price. You see the total and the 1% fee before you sign.</p></div></div>
+    <div class="ticket"><div class="num">3</div><div><h3>Sign once.</h3><p>Your payment and the tokens swap in one transaction. If anything fails, nothing moves.</p></div></div>
+   </div>
+   <div class="panel tickets" id="t-sell" hidden>
+    <div class="ticket"><div class="num">1</div><div><h3>Set your price.</h3><p>Pick the token, amount and price. Add a minimum buy, an end date or a private buyer if you want.</p></div></div>
+    <div class="ticket"><div class="num">2</div><div><h3>Your tokens wait in escrow.</h3><p>The escrow holds them, not a person. A small deposit comes back when the offer closes.</p></div></div>
+    <div class="ticket"><div class="num">3</div><div><h3>Get paid as buyers fill.</h3><p>Each sale pays you in the same transaction, minus the 1% seller fee. Cancel anytime to get the rest back.</p></div></div>
+   </div>
+  </div>
+ </div>
+ <div style="margin-top:50px">
+  <h3 style="margin-bottom:8px">Ask for a price</h3>
+  <p style="max-width:680px">No offer for the token you want? Post a buy request: <b>interest only</b> (nothing is locked) or <b>funded</b> (your SOL is locked so any holder can sell to you instantly).</p>
+  <p style="margin-top:18px"><a class="btn" data-x href="#">Post a buy request</a></p>
+ </div>
+</div></section>
+<hr class="tear">
+
+<section id="fees"><div class="wrap" style="text-align:center">
+ <h2>Fees</h2>
+ <p style="max-width:620px;margin:0 auto">Buyers pay 1% on top of the price. Sellers pay 1% from what they receive. No pool fee, no slippage.</p>
+ <div class="till">
+  <h3>THE TILL</h3>
+  <div class="row"><span>Pool swap fee</span><span>—</span></div>
+  <div class="row"><span>Slippage</span><span>—</span></div>
+  <div class="row"><span>Buyer pays</span><span>1%</span></div>
+  <div class="row"><span>Seller pays</span><span>1%</span></div>
+  <div class="row hl"><span>Total per trade</span><span>1% per side</span></div>
+  <p class="note" style="text-align:left">Plus the normal Solana network fee.</p>
+ </div>
+</div></section>
+<hr class="tear">
+
+<section id="escrow"><div class="wrap">
+ <h2>Your tokens never sit with a person</h2>
+ <p style="max-width:720px">The idea behind Bagswap: when you list, your tokens go into an escrow program, not a company wallet. Code decides where they can go, and the rules are public.</p>
+ <p style="margin-top:10px"><span class="stampx">The plan · escrow in build</span></p>
+ <div class="flow" role="img" aria-label="Seller locks tokens in escrow, buyer pays, escrow swaps both in one transaction">
+  <div class="node"><b>Seller</b><span>lists tokens</span></div>
+  <div class="arrow">tokens locked<i>→</i></div>
+  <div class="node hot"><b>Escrow program</b><span>holds the tokens · swap in 1 tx</span></div>
+  <div class="arrow">pays SOL<i>←</i></div>
+  <div class="node"><b>Buyer</b><span>takes any amount</span></div>
+ </div>
+ <p class="mono" style="font-size:13px;margin-bottom:34px">Tokens → buyer · payment minus fee → seller · Cancel → unsold tokens back to the seller</p>
+ <div class="cols">
+  <div><h4>The program is built to</h4><p>Send your tokens to a buyer who paid, in the same transaction as the payment. Send them back to you when you cancel or your offer ends.</p></div>
+  <div><h4>It can't</h4><p>Move your tokens anywhere else. Change or cancel your offer. Only you can.</p></div>
+  <div><h4>Before you sign</h4><p>You see the price, fee and total first. Sign-in asks for a message signature, not a transaction. Tokens that tax every transfer can't be listed.</p></div>
+ </div>
+</div></section>
+<hr class="tear">
+
+<section id="offers"><div class="wrap" style="text-align:center">
+ <h2>Market</h2>
+ <p>Open offers, buy requests and recent trades.</p>
+ <div class="board">
+  <h3>No offers yet.</h3>
+  <p>Be the first to write a price. List a bag and it shows up here. Looking for a token nobody is selling? Post a buy request.</p>
+  <a class="btn" data-x href="#">List a bag</a>
+ </div>
+</div></section>
+<hr class="tear">
+
+<section id="faq"><div class="wrap">
+ <h2>Questions</h2>
+ <details><summary>Why would I use this instead of a DEX?</summary><p>For small, instant trades a DEX is usually better. Bagswap is for the trades a pool handles badly: buying or selling size in a thin pool (a fixed price has no price impact), tokens whose pools charge high swap or launch fees, tokens paired with another token instead of SOL, offers that keep working while you're offline, and deals with a buyer you already know. Buyers pay 1% and sellers pay 1%, with no pool fee. An offer only fills if someone wants it at your price.</p></details>
+ <details><summary>Does my offer stay up while I'm offline?</summary><p>That's the idea: your offer lives in the escrow, not on your device, so buyers can fill it at any time and the payment lands in your wallet in the same transaction. A fixed price doesn't follow the market, so check your offer when the price moves.</p></details>
+ <details><summary>What are the fees?</summary><p>Buyers and sellers each pay a 1% Bagswap fee. Buyers pay 1% on top of the purchase price. Sellers pay 1%, taken from what they receive. Everyone pays normal Solana network fees (usually under $0.01).</p></details>
+ <details><summary>How do I make sure I'm buying the right token?</summary><p>Match the full mint address (CA), not the name or ticker. Anyone can create a token called "BONK". If the mint doesn't match the one the project publishes, don't buy.</p></details>
+ <details><summary>Can I cancel or change my offer?</summary><p>You can cancel anytime and unsold tokens return to your wallet. To change the price, cancel and list again. Nobody else can edit your offer.</p></details>
+</div></section>
+
+<section class="big"><div class="wrap">
+ <h2>Your price. One transaction.</h2>
+ <p>List a bag in a minute, or post a buy request and let holders come to you.</p>
+ <a class="btn" data-x href="#">List a bag</a>
+</div></section>
+
+<footer><div class="wrap">
+ <div><b>Bagswap</b><br>Fixed-price swaps for Solana memecoins.<br>No slippage. Nobody sends first.</div>
+ <div>Product<br><a href="#offers">Market</a> · <a href="#how">How it works</a> · <a href="#fees">Fees</a> · <a href="#faq">FAQ</a></div>
+ <div>Community<br><a data-x href="#">Bagswap on X</a></div>
+ <div class="ca" id="caBox" hidden>Official CA: <span id="caVal"></span></div>
+ <p class="legal">© 2026 Bagswap. Nothing on this site is financial advice. Memecoins are extremely volatile and can go to zero. Always check the contract address on the official X account. Calculator figures are examples.</p>
+</div></footer>
+
+<a class="btn sticky" data-x href="#">List a bag</a>
+
+<script>
+// shortcut: set the X URL and CA here (or in config.json) -- no restart needed
+var CFG={x:"https://x.com/",ca:""};
+fetch('config.json',{cache:'no-store'}).then(function(r){return r.ok?r.json():{}}).then(function(c){CFG=Object.assign(CFG,c);apply()}).catch(apply);
+function apply(){
+ document.querySelectorAll('[data-x]').forEach(function(a){a.href=CFG.x;a.target='_blank';a.rel='noopener'});
+ if(CFG.ca&&/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(CFG.ca)){document.getElementById('caVal').textContent=CFG.ca;document.getElementById('caBox').hidden=false}
+}
+apply();
+// calculator: constant-product pool at spot 0.0001 SOL/token, 1.25% swap fee, 1% offer fee
+var $=function(i){return document.getElementById(i)};
+function f(n,d){return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function bump(el){el.classList.add('bump');setTimeout(function(){el.classList.remove('bump')},160)}
+function calc(){
+ var amt=Math.max(0.01,parseFloat($('amt').value)||0.01),pool=Math.max(1,parseFloat($('pool').value)||1);
+ var price=0.0001,T=pool/price;
+ var inAfter=amt*(1-0.0125),out=T*inAfter/(pool+inAfter);
+ var worth=out*price,lost=(1-worth/amt)*100;
+ var swapFee=amt*0.0125;
+ var offTokens=amt/price,offFee=amt*0.01;
+ $('aLabel').textContent=f(pool,0)+' SOL / '+f(T,0)+' TOKEN';
+ $('aPay').textContent=f(amt,2);
+ $('aFee').textContent=f(swapFee,3)+' SOL';
+ $('aImp').textContent=f((1-out/(inAfter/price))*100,2)+'%';
+ $('aGet').textContent=f(out,0)+' TOKEN';
+ $('aWorth').textContent=f(worth,2);
+ $('aLost').textContent=f(lost,2)+'%';
+ $('aNote').textContent=f(out,0)+' TOKEN for '+f(amt,2)+' SOL: '+f(lost,2)+'% lost to price impact and the 1.25% pool fee.';
+ $('aStamp').textContent='-'+(lost<10?f(lost,1):f(lost,0))+'%';
+ $('bPrice').textContent='0.0001 SOL';
+ $('bSub').textContent=f(amt,2);
+ $('bFee').textContent=f(offFee,3)+' SOL';
+ $('bPay').textContent=f(amt+offFee,2)+' SOL';
+ $('bGet').textContent=f(offTokens,0)+' TOKEN';
+ [$('aPay'),$('aWorth'),$('bSub')].forEach(bump);
+}
+['amt','pool'].forEach(function(i){$(i).addEventListener('input',calc)});calc();
+// tabs
+document.querySelectorAll('[data-tab]').forEach(function(b){b.addEventListener('click',function(){
+ var t=b.dataset.tab;
+ document.querySelectorAll('[data-tab]').forEach(function(x){x.setAttribute('aria-selected',x===b)});
+ ['buy','sell'].forEach(function(k){$('p-'+k).hidden=$('t-'+k).hidden=(k!==t)});
+})});
+</script>
+</body>
+</html>
